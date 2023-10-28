@@ -3,13 +3,24 @@ name: Magisk Boot Patch Application
 on:
   workflow_dispatch:
     inputs:
+      sysAbi:
+        description: "System ABI"
+        required: true
+        default: "aarch64"
+        type: choice
+        options:
+        - aarch64
+        - armv7
+        - s390x
+        - ppc64le
+        - riscv64
       romUrl:
         description: 'Android ROM Url'
         required: true
-        default: "https://dl.google.com/dl/android/aosp/oriole-ota-tp1a.221005.002-5e69c530.zip"
+        default: "http://sysuptxdl.vivo.com.cn/upgrade/recovery/recoveryFiles/20230606041525f522fd2533870116df1099e0b64d7250.zip"
         type: string
       cpuAbi:
-        description: "CPU ABI"
+        description: "Android ABI"
         required: true
         default: "arm64-v8a"
         type: choice
@@ -28,12 +39,14 @@ on:
         type: boolean
       magiskUrl:
         description: 'Custom Magisk Url'
+        required: true
+        default: 'https://github.com/4accccc/vivo-Magisk-Delta-suu/releases/download/d2a66567-delta(26105)/app-release.apk'
         type: string
 
 jobs:
   getboot:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v3
@@ -88,6 +101,13 @@ jobs:
       run: ls -R
       working-directory: imgs
 
+#    - name: Set up running base.
+#      uses: uraimo/run-on-arch-action@v2
+#      id: system_setup
+#      with:
+#        arch: ${{ inputs.sysAbi }}
+#        distro: ubuntu22.04
+
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
@@ -115,6 +135,7 @@ jobs:
       uses: reactivecircus/android-emulator-runner@v2
       with:
         api-level: 29
+#        arch: ${{ github.event.inputs.cpuAbi }}
         script: ./magisk_patch.sh ${{ inputs.cpuAbi }} ${{ inputs.keepForceEncrypt }} ${{ inputs.keepVerity }}
 
     - name: Upload build artifact
